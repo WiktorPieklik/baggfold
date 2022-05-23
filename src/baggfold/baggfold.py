@@ -60,6 +60,7 @@ class BaggFold:
         start_index = 0
         minority_count = self.y_minority.size
         self.__classifiers = []
+        errors = 0
         for _ in range(self.__needed_classificators_count):
             classifier = C45()
             end_index = start_index + minority_count
@@ -71,7 +72,14 @@ class BaggFold:
             # same minority_count minority samples + different minority_count majority samples (without replacement).
             # In total 2 * minority_count. Any
             if y.size != 2 * minority_count:
-                x, y = self.__oversample_majority(x_majority, y_majority)
-            classifier.fit(x, y)
-            self.__classifiers.append(classifier)
+                try:
+                    x, y = self.__oversample_majority(x_majority, y_majority)
+                    classifier.fit(x, y)
+                    self.__classifiers.append(classifier)
+                except ValueError:
+                    errors += 1
+            else:
+                classifier.fit(x, y)
+                self.__classifiers.append(classifier)
             start_index += minority_count
+        self.__needed_classificators_count -= errors
