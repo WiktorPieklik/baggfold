@@ -1,6 +1,7 @@
+import numpy as np
+
 from math import ceil
 from typing import Tuple
-import numpy as np
 from src.c45 import C45
 from imblearn.over_sampling import SMOTE
 
@@ -15,7 +16,7 @@ class BaggFold:
         self.__classifiers = []
 
     def fit(self, X: np.array, y: np.array):
-        self.__detect_samples_distributions(X, y)
+        self.__detect_samples_distribution(X, y)
         self.__set_classificators_count()
         self.__instantiate_fit_classificators()
 
@@ -28,7 +29,7 @@ class BaggFold:
         voting = classifications.mean(axis=0)
         return np.where(voting >= .5, 1, 0)
 
-    def __detect_samples_distributions(self, X: np.array, y: np.array) -> None:
+    def __detect_samples_distribution(self, X: np.array, y: np.array) -> None:
         positive_samples_indices = np.where(y == 1)[0]
         negative_samples_indices = np.where(y == 0)[0]
         positives_count = len(positive_samples_indices)
@@ -66,6 +67,9 @@ class BaggFold:
             y_majority = self.y_majority[start_index:end_index]
             x = np.concatenate((x_majority, self.x_minority), axis=0)
             y = np.concatenate((y_majority, self.y_minority), axis=0)
+            # Each fold MUST always contain:
+            # same minority_count minority samples + different minority_count majority samples (without replacement).
+            # In total 2 * minority_count. Any
             if y.size != 2 * minority_count:
                 x, y = self.__oversample_majority(x_majority, y_majority)
             classifier.fit(x, y)
