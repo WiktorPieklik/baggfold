@@ -1,1 +1,1 @@
-from .baggfold import BaggFold
+from .baggfold import BaggFold, ThreadedBaggFold
