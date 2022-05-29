@@ -99,7 +99,7 @@ class BaseBaggFold(ABC):
 
     def _prepare_dataset(self) -> None:
         oversampling_count = self.minority_count * ceil(self.majority_count / self.minority_count) - self.majority_count
-        if oversampling_count > 6:
+        if oversampling_count > 5:
             smote = SMOTE(sampling_strategy=1.0)
             x_majority = choices(self.x_minority,
                                  k=oversampling_count * 2)  # majority in terms of smote. In fact, it's the
