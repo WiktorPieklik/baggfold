@@ -36,7 +36,8 @@ def scorer(estimator, X, y):
     return h_score(y, predictions, severity_ratio=(n1 / n0))
 
 
-def repeated_cv(X: np_array, y: np_array, pipeline: Pipeline, k_folds: int, repeats: int, contains_categorical_col: bool) -> list:
+def repeated_cv(X: np_array, y: np_array, pipeline: Pipeline, k_folds: int, repeats: int,
+                contains_categorical_col: bool) -> list:
     repeated_stratified_k_fold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=repeats, random_state=1)
     scores = []
     for train_index, test_index in repeated_stratified_k_fold.split(X, y):
@@ -66,8 +67,6 @@ def standard_scaler(X: np_array, contains_categorical_col: bool) -> Tuple[np_arr
 def evaluate_model(steps, X, y, model_description, contains_categorical_col: bool = False) -> None:
     # define pipeline
     pipeline = Pipeline(steps=steps)
-    # cv = RepeatedStratifiedKFold(n_splits=2, n_repeats=5, random_state=1)
-    # scores = cross_val_score(pipeline, X, y, scoring=scorer, cv=cv, n_jobs=-1)
     scores = repeated_cv(X=X, y=y, pipeline=pipeline, k_folds=2, repeats=5,
                          contains_categorical_col=contains_categorical_col)
 
