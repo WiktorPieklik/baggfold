@@ -4,6 +4,7 @@ from typing import Tuple
 from sklearn.svm import SVC
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
 from imblearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
@@ -46,6 +47,8 @@ def repeated_cv(X: np_array, y: np_array, pipeline: Pipeline, k_folds: int, repe
         X_train, sc = standard_scaler(X_train, contains_categorical_col)
         if contains_categorical_col:
             X_test = sc.transform(X=X_test[:, 2:])
+        else:
+            X_test = sc.transform(X=X_test)
         pipeline.fit(X_train, y_train)
         score = scorer(pipeline, X_test, y_test)
         scores.append(score)
