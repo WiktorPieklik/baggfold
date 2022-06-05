@@ -148,14 +148,17 @@ class BaggFoldThread(Thread):
 
 
 class ThreadedBaggFold(BaseBaggFold):
-    def __init__(self, base_classifier_fn: Callable[[], object], max_threads: int = 30):
+    def __init__(self, base_classifier_fn: Callable[[], object], max_threads: int = 30, logging: bool = True):
         super().__init__(base_classifier_fn)
         self.__threads = []
         self.__max_threads = max_threads
+        self.__logging = logging
 
     def predict(self, X) -> np.array:
         preferred_threads_count = self.__max_threads if self._needed_classificators_count >= 30 else 5
-        self.__prepare_threads(preferred_threads_count, X)
+        threads_count = self.__prepare_threads(preferred_threads_count, X)
+        if self.__logging:
+            print(f"ThreadedBaggFold: running {threads_count} threads, each trains approx. {ceil(len(self._classifiers) / threads_count)} classifiers")
         classifications = np.array([])
         for thread in self.__threads:
             thread.start()
