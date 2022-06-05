@@ -10,8 +10,9 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 from hmeasure import h_score
 from xgboost import XGBClassifier
-from c45 import C45
+from sklearn.tree import DecisionTreeClassifier
 from numpy import array as np_array, mean
+from promting import INFO, SUCCESS
 
 
 def datasets_paths() -> Tuple[str, str, str]:
@@ -67,18 +68,24 @@ def standard_scaler(X: np_array, contains_categorical_col: bool) -> Tuple[np_arr
     return x, sc
 
 
-def evaluate_model(steps, X, y, model_description, contains_categorical_col: bool = False) -> None:
+def evaluate_model(steps, X, y, model_description, contains_categorical_col: bool = False,
+                   save_result: bool = False) -> Tuple[str, float]:
     # define pipeline
     pipeline = Pipeline(steps=steps)
     scores = repeated_cv(X=X, y=y, pipeline=pipeline, k_folds=2, repeats=5,
                          contains_categorical_col=contains_categorical_col)
 
-    print(f"model: {model_description[0]}-{model_description[1]}\t h-score: {mean(scores)}")
+    mean_score = mean(scores)
+    full_model_name = f"{model_description[0]}-{model_description[1]}"
+    INFO(f"model: {full_model_name}\t h-score: {mean_score}")
+
+    return full_model_name, mean_score
 
 
-def evaluate_reference_models(X: np_array, y: np_array, contains_categorical_col: bool = False) -> None:
+def evaluate_reference_models(X: np_array, y: np_array, contains_categorical_col: bool = False,
+                              results_file: str = None) -> None:
     # define models
-    models = [('C45', C45()), ('SVM', SVC()), ('XGB', XGBClassifier())]
+    models = [('CART', DecisionTreeClassifier()), ('SVM', SVC()), ('XGB', XGBClassifier())]
 
     # define oversampling techniques
     oversampling = [('NONE', None), ('SMOTE', SMOTE()), ('rnd_over', RandomOverSampler())]
@@ -86,15 +93,29 @@ def evaluate_reference_models(X: np_array, y: np_array, contains_categorical_col
     # define undersampling techniques
     undersampling = [('rnd_under', RandomUnderSampler())]
 
+    if results_file is not None:
+        with open(results_file, "w") as file:
+            file.write("Model;Score\n")
+
     for model in models:
         for over in oversampling:
             steps = [('over', over[1]), ('model', model[1])]
             model_description = (model[0], over[0])
-            evaluate_model(steps=steps, X=X, y=y, model_description=model_description,
-                           contains_categorical_col=contains_categorical_col)
+            model_name, score = evaluate_model(steps=steps, X=X, y=y, model_description=model_description,
+                                               contains_categorical_col=contains_categorical_col)
+            if results_file is not None:
+                with open(results_file, "a") as file:
+                    file.write(f"{model_name};{score}\n")
 
         for under in undersampling:
             steps = [('under', under[1]), ('model', model[1])]
             model_description = (model[0], under[0])
-            evaluate_model(steps=steps, X=X, y=y, model_description=model_description,
+            model_name, score = evaluate_model(steps=steps, X=X, y=y, model_description=model_description,
                            contains_categorical_col=contains_categorical_col)
+
+            if results_file is not None:
+                with open(results_file, "a") as file:
+                    file.write(f"{model_name};{score}\n")
+
+    if results_file is not None:
+        SUCCESS(f"Results saved in: {results_file}")
