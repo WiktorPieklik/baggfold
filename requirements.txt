@@ -1,3 +1,7 @@
+about-time==3.1.1
+alive-progress==2.4.1
+colorama==0.4.4
+grapheme==0.6.0
 hmeasure==0.1.6
 imbalanced-learn==0.9.1
 joblib==1.1.0
@@ -8,5 +12,6 @@ pytz==2022.1
 scikit-learn==1.1.0
 scipy==1.8.0
 six==1.16.0
+tabulate==0.8.9
 threadpoolctl==3.1.0
 xgboost==1.6.1
